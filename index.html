@@ -1,0 +1,129 @@
+<html>
+<head>
+  <meta charset="utf-8"> 
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Calculator</title>
+  <style>
+* { box-sizing: border-box; }
+html,body { height: 100%; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: #f4f6f8; }
+.container { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 40px; }
+.calculator { width: 320px; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(16,24,40,0.08); padding: 16px; }
+.display { background: #111827; color: #fff; border-radius: 8px; padding: 12px; text-align: right; margin-bottom: 12px; }
+.previous-operand { color: rgba(255,255,255,0.7); font-size: 13px; }
+.current-operand { font-size: 28px; font-weight: 600; }
+.buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.btn { padding: 14px; border-radius: 8px; border: none; background: #f3f4f6; font-size: 16px; cursor: pointer; }
+.btn:active { transform: translateY(1px); }
+.operator { background: #f59e0b; color: #fff; }
+.function { background: #e5e7eb; }
+.equals { background: #10b981; color: #fff; grid-column: span 1; }
+.number.wide { grid-column: span 2; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="calculator">
+      <div class="display" id="display">
+        <div id="previous" class="previous-operand"></div>
+        <div id="current" class="current-operand">0</div>
+      </div>
+
+      <div class="buttons">
+        <button class="btn function" data-action="clear">C</button>
+        <button class="btn function" data-action="backspace">⌫</button>
+        <button class="btn operator" data-action="operator" data-value="%">%</button>
+        <button class="btn operator" data-action="operator" data-value="/">÷</button>
+
+        <button class="btn number" data-action="number" data-value="7">7</button>
+      <button class="btn number" data-action="number" data-value="8">8</button>
+        <button class="btn number" data-action="number" data-value="9">9</button>
+        <button class="btn operator" data-action="operator" data-value="*">×</button>
+
+        <button class="btn number" data-action="number" data-value="4">4</button>
+        <button class="btn number" data-action="number" data-value="5">5</button>
+        <button class="btn number" data-action="number" data-value="6">6</button>
+        <button class="btn operator" data-action="operator" data-value="-">−</button>
+
+        <button class="btn number" data-action="number" data-value="1">1</button>
+        <button class="btn number" data-action="number" data-value="2">2</button>
+        <button class="btn number" data-action="number" data-value="3">3</button>
+        <button class="btn operator" data-action="operator" data-value="+">+</button>
+
+        <button class="btn number wide" data-action="number" data-value="0">0</button>
+        <button class="btn number" data-action="number" data-value=".">.</button>
+        <button class="btn equals" data-action="equals">=</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+const displayCurrent = document.getElementById('current');
+const displayPrevious = document.getElementById('previous');
+const buttons = document.querySelectorAll('.btn');
+
+let current = '0';
+let previous = '';
+let operator = null;
+let resetNext = false;
+
+function updateDisplay() {
+  displayCurrent.textContent = current;
+  displayPrevious.textContent = previous + (operator ? ` ${operator}` : '');
+}
+
+function handleNumber(val) {
+  if (resetNext) { current = val === '.' ? '0.' : val; resetNext = false; }
+  else if (val === '.' && current.includes('.')) return;
+  else current = (current === '0' && val !== '.') ? val : current + val;
+}
+
+function applyOperator(op) {
+  if (operator && !resetNext) compute();
+  operator = op;
+  previous = current;
+  resetNext = true;
+}
+
+function compute() {
+  if (!operator || previous === '') return;
+  const a = parseFloat(previous);
+  const b = parseFloat(current);
+  let res = 0;
+  switch (operator) {
+    case '+': res = a + b; break;
+    case '-': res = a - b; break;
+    case '*': res = a * b; break;
+    case '/': res = b === 0 ? 'Error' : a / b; break;
+    case '%': res = a % b; break;
+  }
+  current = String(res);
+  previous = '';
+  operator = null;
+  resetNext = true;
+}
+
+function clearAll() {
+  current = '0'; previous = ''; operator = null; resetNext = false;
+}
+
+function backspace() {
+  if (resetNext) { current = '0'; resetNext = false; return; }
+  current = current.length > 1 ? current.slice(0, -1) : '0';
+}
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action;
+    const value = btn.dataset.value;
+    if (action === 'number') handleNumber(value);
+    else if (action === 'operator') applyOperator(value);
+    else if (action === 'equals') compute();
+    else if (action === 'clear') clearAll();
+    else if (action === 'backspace') backspace();
+    updateDisplay();
+  });
+});
+updateDisplay();
+  </script>
+</body>
+</html>
